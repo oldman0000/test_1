@@ -1,13 +1,18 @@
 from django.shortcuts import render, redirect
 from .models import Comment
 
+
 def home(request):
-    # Someone pressed "Post": save their comment
+    # Someone pressed "Post"
     if request.method == "POST":
-        name = request.POST.get("name", "").strip()
+        # Only logged-in users may post
+        if not request.user.is_authenticated:
+            return redirect("/login/")
+
         text = request.POST.get("text", "").strip()
-        if name and text:
-            Comment.objects.create(name=name, text=text)
+        if text:
+            # The name comes from their account, not from a text box
+            Comment.objects.create(name=request.user.username, text=text)
         return redirect("/")
 
     # Someone just opened the page: show all comments, newest first

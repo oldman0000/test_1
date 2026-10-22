@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 60px auto; padding: 0 16px; }
+    input { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
+    button { padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Log in</h1>
+  <p>Enter your email and we'll send you a 6-digit code.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="email" name="email" placeholder="you@example.com" required>
+    <button type="submit">Send code</button>
+  </form>
+</body>
+</html>

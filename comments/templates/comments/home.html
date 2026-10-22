@@ -15,12 +15,22 @@
 <body>
   <h1>Comment Wall</h1>
 
-  <form method="post">
-    {% csrf_token %}
-    <input name="name" placeholder="Your name" maxlength="50" required>
-    <textarea name="text" placeholder="Write a comment..." maxlength="500" required></textarea>
-    <button type="submit">Post</button>
-  </form>
+   {% if user.is_authenticated %}
+    <div style="margin-bottom: 12px;">
+      Logged in as <strong>{{ user.username }}</strong>
+      <form method="post" action="/logout/" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <textarea name="text" placeholder="Write a comment..." maxlength="500" required></textarea>
+      <button type="submit">Post</button>
+    </form>
+  {% else %}
+    <p><a href="/login/">Log in</a> to write a comment.</p>
+  {% endif %}
 
   <h2>Comments ({{ comments|length }})</h2>
 
