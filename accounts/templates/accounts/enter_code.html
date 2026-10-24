@@ -9,11 +9,19 @@
     input { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; font-size: 1.4em; letter-spacing: 6px; }
     button { padding: 8px 16px; cursor: pointer; }
     .error { color: #c00; }
+    .warning { color: #b36b00; }
   </style>
 </head>
 <body>
   <h1>Check your email</h1>
   <p>We sent a code to <strong>{{ email }}</strong>.</p>
+
+  {% if codes_left == 1 %}
+      <p class="warning">Heads up: you can request a code for this email only one more time this hour.</p>
+  {% elif codes_left == 0 %}
+      <p class="warning">This is your last code for this email this hour.</p>
+  {% endif %}
+
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <form method="post">
     {% csrf_token %}
