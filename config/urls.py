@@ -21,5 +21,6 @@ from comments import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home),
+    path('comments/<int:comment_id>/delete/', views.delete_comment, name="delete_comment"),
     path('', include('accounts.urls')),
 ]
