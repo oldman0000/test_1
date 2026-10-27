@@ -124,7 +124,7 @@ def choose_username(request):
         username = request.POST.get("username", "").strip()
 
         if not USERNAME_PATTERN.match(username):
-            error = "Use 3–20 letters, numbers or underscores (_)."
+            error = "Use 3-20 letters, numbers or underscores (_)."
         elif User.objects.filter(username__iexact=username).exists():
             error = "Sorry, that username is taken. Try another."
         else:
@@ -141,4 +141,28 @@ def log_out(request):
         logout(request)
     return redirect("/")
 
+
+
+
+def change_username(request):
+    # Only logged-in users can change their username
+    if not request.user.is_authenticated:
+        return redirect("enter_email")
+
+    error = ""
+    username = request.user.username   # start with their current name in the box
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+
+        if not USERNAME_PATTERN.match(username):
+            error = "Use 3-20 letters, numbers or underscores (_)."
+        elif User.objects.filter(username__iexact=username).exclude(id=request.user.id).exists():
+            error = "Sorry, that username is taken. Try another."
+        else:
+            request.user.username = username
+            request.user.save()
+            messages.success(request, f"Your username is now {username}.")
+            return redirect("/")
+
+    return render(request, "accounts/change_username.html", {"error": error, "username": username})
 

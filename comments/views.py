@@ -17,7 +17,7 @@ def home(request):
         return redirect("/")
 
     # Someone just opened the page: show all comments, newest first
-    comments = Comment.objects.order_by("-created_at")
+    comments = Comment.objects.select_related("author").order_by("-created_at")
     return render(request, "comments/home.html", {"comments": comments})
 
 

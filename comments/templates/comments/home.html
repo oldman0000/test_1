@@ -12,15 +12,18 @@
     .meta { color: #777; font-size: 0.85em; margin-left: 8px; }
     .delete { background: #d32f2f; color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.85em; cursor: pointer; }
     .delete:hover { background: #b71c1c; }
+    .msg.error { color: #c00; }
+    .msg.success { color: #2e7d32; }
   </style>
 </head>
 <body>
   <h1>Comment Wall</h1>
-  {% for message in messages %}<p style="color: #c00;">{{ message }}</p>{% endfor %}
-
+  {% for message in messages %}<p class="msg {{ message.tags }}">{{ message }}</p>{% endfor %}
+   
    {% if user.is_authenticated %}
-    <div style="margin-bottom: 12px;">
-      Logged in as <strong>{{ user.username }}</strong>
+      <div style="margin-bottom: 12px;">
+        Logged in as       <strong>{% if comment.author %}{{ comment.author.username }}{% else %}{{ comment.name }}{% endif %}</strong>
+        (<a href="/account/username/">change</a>)
       <form method="post" action="/logout/" style="display:inline">
         {% csrf_token %}
         <button type="submit">Log out</button>

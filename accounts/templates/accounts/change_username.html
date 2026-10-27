@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Change username</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 60px auto; padding: 0 16px; }
+    input { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
+    button { padding: 8px 16px; cursor: pointer; }
+    .error { color: #c00; }
+    .hint { color: #777; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Change username</h1>
+  <p>Your current username is <strong>{{ user.username }}</strong>.</p>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input name="username" value="{{ username }}"
+           minlength="3" maxlength="20" required autofocus>
+    <p class="hint">3–20 characters: letters, numbers or underscore (_).</p>
+    <button type="submit">Save</button>
+  </form>
+
+  <p><a href="/">Cancel</a></p>
+</body>
+</html>
