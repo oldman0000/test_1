@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Change photo</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 60px auto; padding: 0 16px; }
+    .avatar { width: 128px; height: 128px; border-radius: 50%; object-fit: cover; display: block; margin-bottom: 12px; }
+    button { padding: 8px 16px; cursor: pointer; margin-top: 8px; }
+    .remove { background: none; border: none; color: #c00; padding: 0; }
+    .error { color: #c00; }
+    .hint { color: #777; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Change photo</h1>
+
+  {% if profile.avatar %}
+    <img class="avatar" src="/avatar/{{ user.id }}/?v={{ profile.avatar_updated_at|date:'U' }}" alt="Your photo">
+  {% else %}
+    <p>You don't have a photo yet.</p>
+  {% endif %}
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="photo" accept="image/*" required>
+    <p class="hint">JPG or PNG, up to 4 MB. It will be cropped to a square.</p>
+    <button type="submit">Upload</button>
+  </form>
+
+  {% if profile.avatar %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" name="remove" class="remove">Remove photo</button>
+    </form>
+  {% endif %}
+
+  <p><a href="/">Back</a></p>
+</body>
+</html>

@@ -5,59 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Comment Wall</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
-    input, textarea { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
-    button { padding: 8px 16px; cursor: pointer; }
+    body { font-family: sans-serif; margin: 0; background: #f0f2f5; }
+    .page { display: flex; gap: 24px; max-width: 900px; margin: 40px auto; padding: 0 16px; align-items: flex-start; }
+
+    /* Left side panel */
+    .sidebar { width: 200px; flex-shrink: 0; background: white; border-radius: 8px; padding: 20px; text-align: center; position: sticky; top: 20px; }
+    .avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 10px; }
+    .avatar-letter { width: 96px; height: 96px; border-radius: 50%; background: #1877f2; color: white; font-size: 44px; line-height: 96px; margin: 0 auto 10px; }
+    .name { font-weight: bold; font-size: 1.1em; margin-bottom: 12px; word-break: break-all; }
+    .sidebar a { display: block; margin: 6px 0; color: #1877f2; text-decoration: none; }
+    .sidebar button { margin-top: 10px; padding: 6px 14px; cursor: pointer; }
+
+    /* Main column */
+    .main { flex: 1; min-width: 0; background: white; border-radius: 8px; padding: 20px; }
+    textarea { width: 100%; padding: 8px; margin-bottom: 8px; box-sizing: border-box; }
+    .post-btn { padding: 8px 16px; cursor: pointer; }
     .comment { border-bottom: 1px solid #ddd; padding: 12px 0; }
     .meta { color: #777; font-size: 0.85em; margin-left: 8px; }
     .delete { background: #d32f2f; color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.85em; cursor: pointer; }
     .delete:hover { background: #b71c1c; }
     .msg.error { color: #c00; }
     .msg.success { color: #2e7d32; }
+
+    /* Phones: move the panel to the top */
+    @media (max-width: 700px) {
+      .page { flex-direction: column; margin: 16px auto; }
+      .sidebar { width: auto; position: static; align-self: stretch; }
+    }
   </style>
 </head>
 <body>
-  <h1>Comment Wall</h1>
-  {% for message in messages %}<p class="msg {{ message.tags }}">{{ message }}</p>{% endfor %}
-   
-   {% if user.is_authenticated %}
-      <div style="margin-bottom: 12px;">
-        Logged in as       <strong>{% if comment.author %}{{ comment.author.username }}{% else %}{{ comment.name }}{% endif %}</strong>
-        (<a href="/account/username/">change</a>)
-      <form method="post" action="/logout/" style="display:inline">
-        {% csrf_token %}
-        <button type="submit">Log out</button>
-      </form>
-    </div>
-    <form method="post">
-      {% csrf_token %}
-      <textarea name="text" placeholder="Write a comment..." maxlength="500" required></textarea>
-      <button type="submit">Post</button>
-    </form>
-  {% else %}
-    <p><a href="/login/">Log in</a> to write a comment.</p>
-  {% endif %}
+  <div class="page">
 
-  <h2>Comments ({{ comments|length }})</h2>
-
-  {% for comment in comments %}
-    <div class="comment">
-      <strong>{{ comment.name }}</strong>
-      <span class="meta">{{ comment.created_at|date:"M j, Y, g:i a" }}</span>
-      <p>{{ comment.text|linebreaksbr }}</p>
-
-
-      {% if comment.author == user %}
-        <form method="post" action="/comments/{{ comment.id }}/delete/"
-            onsubmit="return confirm('Delete this comment?');">
+    <aside class="sidebar">
+      {% if user.is_authenticated %}
+        {% if user.profile.avatar %}
+          <img class="avatar" src="/avatar/{{ user.id }}/?v={{ user.profile.avatar_updated_at|date:'U' }}" alt="{{ user.username }}">
+        {% else %}
+          <div class="avatar-letter">{{ user.username|first|upper }}</div>
+        {% endif %}
+        <div class="name">{{ user.username }}</div>
+        <a href="/account/photo/">Change photo</a>
+        <a href="/account/username/">Change username</a>
+        <form method="post" action="/logout/">
           {% csrf_token %}
-          <button type="submit" class="delete">Delete</button>
+          <button type="submit">Log out</button>
+        </form>
+      {% else %}
+        <div class="avatar-letter">?</div>
+        <p><a href="/login/">Log in</a> to join the conversation.</p>
+      {% endif %}
+    </aside>
+
+    <main class="main">
+      <h1>Comment Wall</h1>
+      {% for message in messages %}<p class="msg {{ message.tags }}">{{ message }}</p>{% endfor %}
+
+      {% if user.is_authenticated %}
+        <form method="post">
+          {% csrf_token %}
+          <textarea name="text" placeholder="Write a comment..." maxlength="500" required></textarea>
+          <button type="submit" class="post-btn">Post</button>
         </form>
       {% endif %}
 
-    </div>
-  {% empty %}
-    <p>No comments yet. Be the first!</p>
-  {% endfor %}
+      <h2>Comments ({{ comments|length }})</h2>
+
+      {% for comment in comments %}
+        <div class="comment">
+          <strong>{% if comment.author %}{{ comment.author.username }}{% else %}{{ comment.name }}{% endif %}</strong>
+          <span class="meta">{{ comment.created_at|date:"M j, Y, g:i a" }}</span>
+          <p>{{ comment.text|linebreaksbr }}</p>
+          {% if comment.author == user %}
+            <form method="post" action="/comments/{{ comment.id }}/delete/"
+                  onsubmit="return confirm('Delete this comment?');">
+              {% csrf_token %}
+              <button type="submit" class="delete">Delete</button>
+            </form>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p>No comments yet. Be the first!</p>
+      {% endfor %}
+    </main>
+
+  </div>
 </body>
 </html>
+
+
+

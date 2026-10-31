@@ -1,3 +1,5 @@
+import io
+from PIL import Image, ImageOps
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 import re
@@ -6,12 +8,21 @@ from django.contrib.auth import login, logout, models
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
-from .models import LoginCode, CodeRequest
+from .models import LoginCode, CodeRequest, Profile
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib import messages
+
+
+
+
+
+
+
+
+
 
 
 ALLOWED_DOMAINS = {"gmail.com", "yahoo.com", "outlook.com", "icloud.com", "aol.com", "protonmail.com", "zoho.com", "gmx.com"}
@@ -166,3 +177,71 @@ def change_username(request):
 
     return render(request, "accounts/change_username.html", {"error": error, "username": username})
 
+
+
+
+
+
+MAX_UPLOAD_BYTES = 4 * 1024 * 1024   # 4 MB
+AVATAR_SIZE = 128                    # pixels
+
+
+def change_photo(request):
+    if not request.user.is_authenticated:
+        return redirect("enter_email")
+
+    # Get this user's profile, or create an empty one the first time
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    error = ""
+
+    if request.method == "POST":
+        # The "Remove photo" button
+        if "remove" in request.POST:
+            profile.avatar = None
+            profile.avatar_updated_at = timezone.now()
+            profile.save()
+            messages.success(request, "Your photo was removed.")
+            return redirect("/")
+
+        upload = request.FILES.get("photo")
+        if upload is None:
+            error = "Please choose a photo."
+        elif upload.size > MAX_UPLOAD_BYTES:
+            error = "That file is too big. Please choose a photo under 4 MB."
+        else:
+            try:
+                image = Image.open(upload)
+                image = ImageOps.exif_transpose(image)                    # fix sideways phone photos
+                image = image.convert("RGB")                              # JPEG needs plain colours
+                image = ImageOps.fit(image, (AVATAR_SIZE, AVATAR_SIZE))   # crop to a centred square
+            except Exception:
+                error = "That doesn't look like an image. Please choose a JPG or PNG photo."
+            else:
+                # Save as a small JPEG, in memory, then into the database
+                buffer = io.BytesIO()
+                image.save(buffer, format="JPEG", quality=85)
+                profile.avatar = buffer.getvalue()
+                profile.avatar_updated_at = timezone.now()
+                profile.save()
+                messages.success(request, "Your photo was updated.")
+                return redirect("/")
+
+    return render(request, "accounts/change_photo.html", {"error": error, "profile": profile})
+
+
+
+
+
+
+
+
+
+def avatar(request, user_id):
+    profile = Profile.objects.filter(user_id=user_id).first()
+    if profile is None or not profile.avatar:
+        raise Http404("No photo")
+
+    response = HttpResponse(bytes(profile.avatar), content_type="image/jpeg")
+    # Let browsers keep a copy for a long time (see the ?v= trick below)
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response

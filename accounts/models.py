@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class LoginCode(models.Model):
@@ -16,3 +17,15 @@ class LoginCode(models.Model):
 class CodeRequest(models.Model):
     email = models.EmailField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    
+    
+
+
+
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    avatar = models.BinaryField(null=True, blank=True)
+    avatar_updated_at = models.DateTimeField(null=True, blank=True)
